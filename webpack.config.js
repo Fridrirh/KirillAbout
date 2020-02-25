@@ -6,8 +6,16 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HTMLWebpackPuPlugin = require("html-webpack-pug-plugin");
 
 const PATHS = {
-  src: path.resolve(__dirname, "./src")
+  SRC: path.resolve(__dirname, "./src"),
+  PAGES: path.resolve(__dirname, "./src/pages")
 };
+
+const HtmlPagesPlugins = fs.readdirSync(PATHS.PAGES).map(fileName => {
+  return new HTMLWebpackPlugin({
+    template: `./src/pages/${fileName}`,
+    filename: fileName.replace("pug", "html")
+  });
+});
 
 module.exports = env => ({
   mode: env && env.production ? "production" : "development",
@@ -42,6 +50,17 @@ module.exports = env => ({
           "css-loader",
           "sass-loader"
         ]
+      },
+      {
+        test: /\.otf$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "file-loader",
+          options: {
+            name: "[name].[ext]",
+            outputPath: "fonts/"
+          }
+        }
       }
     ]
   },
@@ -51,6 +70,7 @@ module.exports = env => ({
       template: "./src/index.pug",
       filename: "index.html"
     }),
+    ...HtmlPagesPlugins,
     new MiniCssExtractPlugin()
   ],
   optimization: {
@@ -63,12 +83,6 @@ module.exports = env => ({
           name: "vendors",
           chunks: "all"
         }
-        // styles: {
-        //   name: "styles",
-        //   test: /\.css$/,
-        //   chunks: "all",
-        //   enforce: true
-        // }
       }
     }
   }
